@@ -5,104 +5,104 @@ using namespace std;
 
 // 144 bytes
 struct iNodoEntry{
-	char m_acceso;
-	short i_nodo;
-	int l_archivo,f_creo,f_mod,t_archivo;
-	long d_directo[12];
-	long p_isimple,p_idoble,p_itriple;
+    char m_acceso;
+    short i_nodo;
+    int l_archivo,f_creo,f_mod,t_archivo;
+    long d_directo[12];
+    long p_isimple,p_idoble,p_itriple;
 
-	void setMacceso(char a){
-		m_acceso = a;
-	}
-	char getMacceso(){
-		return m_acceso;
-	}
-	void setInodo(short a){
-		i_nodo = a;
-	}
-	short getInodo(){
-		return i_nodo;
-	}
-	void setLarchivo(int a){
-		l_archivo = a;
-	}
-	int getLarchivo(){
-		return l_archivo;
-	}
-	void setFcreo(int a){
-		f_creo = a;
-	}
-	int getFcreo(){
-		return f_creo;
-	}
-	void setFmod(int a){
-		f_mod = a;
-	}
-	int getFmod(){
-		return f_mod;
-	}
-	void setTarchivo(int a){
-		t_archivo = a;
-	}
-	int getTarchivo(){
-		return t_archivo;
-	}
-	void setDdirecto(long a[]){
-		//d_directo = a;
-	}
-	long* getDdirecto(){
-		return d_directo;
-	}
-	void setPisimple(long a){
-		p_isimple = a;
-	}
-	long getPisimple(){
-		return p_isimple;
-	}
-	void getPidoble(long a){
-		p_idoble = a;
-	}
-	long getPidoble(){
-		return p_idoble;
-	}
-	void setPitriple(long a){
-		p_itriple = a;
-	}
-	long getPitriple(){
-		return p_itriple;
-	}
-//	*/
+    void setMacceso(char a){
+        m_acceso = a;
+    }
+    char getMacceso(){
+        return m_acceso;
+    }
+    void setInodo(short a){
+        i_nodo = a;
+    }
+    short getInodo(){
+        return i_nodo;
+    }
+    void setLarchivo(int a){
+        l_archivo = a;
+    }
+    int getLarchivo(){
+        return l_archivo;
+    }
+    void setFcreo(int a){
+        f_creo = a;
+    }
+    int getFcreo(){
+        return f_creo;
+    }
+    void setFmod(int a){
+        f_mod = a;
+    }
+    int getFmod(){
+        return f_mod;
+    }
+    void setTarchivo(int a){
+        t_archivo = a;
+    }
+    int getTarchivo(){
+        return t_archivo;
+    }
+    void setDdirecto(long a[]){
+        //d_directo = a;
+    }
+    long* getDdirecto(){
+        return d_directo;
+    }
+    void setPisimple(long a){
+        p_isimple = a;
+    }
+    long getPisimple(){
+        return p_isimple;
+    }
+    void getPidoble(long a){
+        p_idoble = a;
+    }
+    long getPidoble(){
+        return p_idoble;
+    }
+    void setPitriple(long a){
+        p_itriple = a;
+    }
+    long getPitriple(){
+        return p_itriple;
+    }
+//  */
 }inodo;
 
 struct directoryEntry{
-	char *nombre;
-	short t_nombre;
-	short n_inodo;
-	short t_registro;
-	void setNombre(char* nom){
-		nombre = nom;
-	}
-	char* getNombre(){
-		return nombre;
-	}
-	void setTnombre(short t){
-		t_nombre = t;
-	}
-	short getTnombre(){
-		return t_nombre;
-	}
-	void setNinodo(short t){
-		n_inodo = t;
-	}
-	short getNinodo(){
-		return n_inodo;
-	}
-	void setTregistro(short t){
-		t_registro = t;
-	}
-	short getTregistro(){
-		return t_registro;
-	}
+    char *nombre;
+    short t_nombre;
+    short n_inodo;
+    short t_registro;
+    void setNombre(char* nom){
+        nombre = nom;
+    }
+    char* getNombre(){
+        return nombre;
+    }
+    void setTnombre(short t){
+        t_nombre = t;
+    }
+    short getTnombre(){
+        return t_nombre;
+    }
+    void setNinodo(short t){
+        n_inodo = t;
+    }
+    short getNinodo(){
+        return n_inodo;
+    }
+    void setTregistro(short t){
+        t_registro = t;
+    }
+    short getTregistro(){
+        return t_registro;
+    }
 
 }direntry;
 
@@ -117,6 +117,9 @@ struct iNodoBitmap{
             }
         }
         return -1;
+    }
+    int getInodo(int numero){
+        return inodo[numero];
     }
     void initBitmapI(){
         for(int i=0; i<1024; i++){
@@ -135,6 +138,9 @@ struct BitmapDatos{
             }
         }
         return -1;
+    }
+    int getDato(int numero){
+        return datos[numero];
     }
     void initBitmapD(){
         datos[0] = 1;
@@ -301,6 +307,68 @@ void cat_Leer(char* nombre){
     archivo2.close();
 */
 }
+void borrarArchivo(char* nombre){
+    string temp;
+    int busqueda=20;
+    getline(cin, temp, '\n');
+    cout<<temp<<endl;
+    char contenido[temp.length()];
+    for(int i=0; i<temp.length(); i++){
+        contenido[i] = temp[i];
+    }
+    char * temp1 = nombre;
+    char * temp2 = contenido;
+    cout<<"ingresado: "<<temp2<<endl;
+
+    BitmapDatos datos;
+    iNodoBitmap inodos;
+    TablaInodos tabla;
+
+    ifstream archivol("archivo.dat", ios::binary);
+    archivol.read((char*)&datos, sizeof(BitmapDatos));
+    archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+
+    int d_libre = datos.getDato(busqueda);
+    int i_libre = inodos.getInodo(busqueda);
+
+    inodos.inodo[busqueda] = 0;
+
+    tabla.inodos[busqueda].setMacceso(0);
+    tabla.inodos[busqueda].setInodo(0);
+    tabla.inodos[busqueda].setLarchivo(sizeof(0));
+    long ddirectos[12];
+    /*
+    if(d_libre == 0){
+        ddirectos[0] = 160764;
+    }*/
+    for(int i=0; i<12; i++){
+        ddirectos[i] = (busqueda+i)* 0;
+        datos.datos[busqueda+i] = 0;
+    }
+    cout<<"current_pos:"<<archivol.tellg()<<endl;
+    tabla.inodos[busqueda].setDdirecto(ddirectos);
+    int primera_dir = d_libre * 160764;
+    archivol.close();
+    cout<<"Se ha borrado "<<nombre<<"!"<<endl;
+
+    ofstream archivo("archivo.dat", ios::binary);
+    cout<<"tamaño B_Datos: "<<sizeof(BitmapDatos)/1024<<" KB"<<endl;
+    cout<<"tamaño B_iNodos: "<<sizeof(iNodoBitmap) << " B" <<endl;
+    cout<<"tamaño iNodoEntry: "<<sizeof(iNodoEntry)<< " B"<<endl;
+    cout<<"tamaño T_Inodos: "<<sizeof(TablaInodos)/1024<<" KB"<<endl;
+    cout<<"tamaño dir_entry: "<<sizeof(directoryEntry)<<" B"<<endl;
+    cout<<"tamaño: "<<sizeof(Cluster)<<"B"<<endl;
+    int total = (sizeof(TablaInodos)+sizeof(iNodoBitmap)+sizeof(BitmapDatos));
+    cout<<"Total reservado: "<<(total)<<" B"<<endl;
+    int t_archivo = 262144*1024;
+    cout<<"tamaño Datos: "<<(t_archivo-total)<<" KB"<<endl;
+    archivo.write((char*)&d_bitmap, sizeof(BitmapDatos));
+    archivo.write((char*)&i_bitmap, sizeof(iNodoBitmap));
+    archivo.write((char*)&t_inodos, sizeof(TablaInodos));
+    archivo.close();
+}
+
 int main() {
     CrearArchivo();
     string comando;
@@ -330,10 +398,32 @@ int main() {
             nombre[i] = temp[i];
         }
         cat_Leer(nombre);
+    }else if (comando[0]=='r' && comando[1]=='m'){
+        string temp;
+        for(int i=3; i<comando.length(); i++){
+            temp += comando[i];
+        }
+        //char *temp = nombre;
+        cout<<"rm"<<endl;
+        char nombre[temp.length()];
+        for(int i=0; i<temp.length(); i++){
+            nombre[i] = temp[i];
+        }
+        borrarArchivo(nombre);
+    }else if (comando[0]=='c' && comando[1]=='d'){
+        string temp;
+        for(int i=3; i<comando.length(); i++){
+            temp += comando[i];
+        }
+        //char *temp = nombre;
+        char nombre[temp.length()];
+        for(int i=0; i<temp.length(); i++){
+            nombre[i] = temp[i];
+        }
+        cout<<"cd "<<temp<<"\\"<<endl;
     }else{
         cout<<"comando incorrecto"<<endl;
     }
     //continuar con lo de los accesos al bitmap y demas para no tener problemas al buscar
    return 0;
 }
-

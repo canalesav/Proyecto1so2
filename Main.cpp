@@ -421,9 +421,15 @@ int main() {
             nombre[i] = temp[i];
         }
         cout<<"cd "<<temp<<"\\"<<endl;
-    }else{
+    }else if(comando[0]=='e' && comando[1]=='x' && comando[2]=='i' && comando[3]=='t')
+    {
+	cout<<"Saliendo"<<endl;        
+	return(0);
+    }
+    else{
         cout<<"comando incorrecto"<<endl;
     }
     //continuar con lo de los accesos al bitmap y demas para no tener problemas al buscar
    return 0;
 }
+

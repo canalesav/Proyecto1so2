@@ -164,6 +164,55 @@ struct Cluster{
         datos = dat;
     }
 };
+//crea el directorio raiz
+void creaRaiz(){
+	directoryEntry dirent;
+   	directoryEntry dirent2; 
+   	Cluster cluster;
+	Cluster clusterTraido;
+	iNodoEntry inodoNuevo;
+	BitmapDatos datos;
+	iNodoBitmap inodos;
+	TablaInodos tabla;
+
+    ifstream archivol("archivo.dat", ios::binary);
+    archivol.read((char*)&datos, sizeof(BitmapDatos));
+    archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+
+	int d_libre = datos.getDatoLibre();
+    	int i_libre = inodos.getInodoLibre();	
+	
+   ofstream fsalida("archivo.dat",ios::out | ios::binary);
+	int direcciones[12]={0};
+	
+	direcciones[0]=(2)*160764;
+	inodoNuevo.setMacceso('rw');
+	inodoNuevo.setInodo(i_libre);
+	inodoNuevo.setLarchivo(4096);
+	inodoNuevo.setFcreo(20);
+	inodoNuevo.setFmod(20);
+	inodoNuevo.setTarchivo(0);
+	inodoNuevo.d_directo[0] = ((2)*160764);
+	char* nombre1= "/";
+	dirent.setNombre(nombre1);
+   	dirent.setTregistro(200);
+   	dirent.setTnombre(1);
+   	dirent.setNinodo(i_libre);
+	dirPadre = i_libre;
+	cluster.direntry = dirent;
+	
+		datos.datos[2] = true;
+		inodos.inodo[i_libre] = true;
+		tabla.inodos[i_libre] = inodoNuevo;
+	    fsalida.write((char*)&datos, sizeof(BitmapDatos));
+	    fsalida.write((char*)&inodos, sizeof(iNodoBitmap));
+	    fsalida.write((char*)&tabla, sizeof(TablaInodos));
+   	fsalida.seekp((2)* 160764, ios::beg);
+   	fsalida.write(reinterpret_cast<char *>(&cluster),sizeof(Cluster));
+   
+   	fsalida.close();
+}
 void CrearArchivo(){
     ofstream archivo("archivo.dat", ios::binary);
     for(int i=0; i<1024; i++){

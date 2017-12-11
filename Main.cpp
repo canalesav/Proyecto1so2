@@ -2,7 +2,8 @@
 #include <fstream>
 #include <string.h>
 using namespace std;
-
+int dirPadre = 0;
+string currentPath = "/";
 // 144 bytes
 struct iNodoEntry{
     char m_acceso;
@@ -418,6 +419,106 @@ void borrarArchivo(char* nombre){
     archivo.close();
 }
 
+//mkdir
+void creaDirectorio(char *name,int dPadre){
+	directoryEntry dirent;
+   	directoryEntry dirent2; 
+   	Cluster cluster;
+	int dcluster = 0;
+	Cluster clusterTraido;
+
+	iNodoEntry inodoNuevo;
+	
+	BitmapDatos datos;
+	iNodoBitmap inodos;
+	TablaInodos tabla;
+
+    ifstream archivol("archivo.dat", ios::binary);
+    archivol.read((char*)&datos, sizeof(BitmapDatos));
+    archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+	
+	dcluster = tabla.inodos[dPadre].getDdirecto()[0];
+	archivol.seekg(dcluster, ios::beg);
+	archivol.read((char*)&clusterTraido, sizeof(Cluster));
+	int d_libre = datos.getDatoLibre();
+    	int i_libre = inodos.getInodoLibre();
+	datos.datos[d_libre] = true;
+	inodos.inodo[i_libre] = true;
+	
+   ofstream fsalida("archivo.dat",ios::out | ios::binary);
+	//long direcciones[12]={0};
+	
+	//direcciones[0]=(i_libre)*160764;
+	inodoNuevo.setMacceso('rw');
+	inodoNuevo.setInodo(i_libre);
+	inodoNuevo.setLarchivo(4096);
+	inodoNuevo.setFcreo(20);
+	inodoNuevo.setFmod(20);
+	inodoNuevo.setTarchivo(0);
+	//inodoNuevo.setDdirecto(direcciones);
+	inodoNuevo.d_directo[0] = (i_libre)* 160764;
+	
+	
+	char* nombre1= name;
+	dirent.setNombre(nombre1);
+   	dirent.setTregistro(200);
+   	dirent.setTnombre(1);
+   	dirent.setNinodo(i_libre);
+	cluster.direntry = dirent;
+	
+	
+		//fsalida.seekp(0, ios::beg);
+		clusterTraido.setDatos((char*)&dirent);
+		datos.datos[2] = true;
+		inodos.inodo[i_libre] = true;
+		tabla.inodos[i_libre] = inodoNuevo;
+	    fsalida.write((char*)&datos, sizeof(BitmapDatos));
+	    fsalida.write((char*)&inodos, sizeof(iNodoBitmap));
+	    fsalida.write((char*)&tabla, sizeof(TablaInodos));
+		fsalida.seekp(dcluster, ios::beg);
+	    fsalida.write(reinterpret_cast<char *>(&clusterTraido), sizeof(Cluster));
+
+
+   	fsalida.seekp((i_libre)* 160764, ios::beg);
+   	fsalida.write(reinterpret_cast<char *>(&cluster),sizeof(Cluster));
+   
+   	fsalida.close();
+}
+//cd
+void cambiaDirectorio(char *name,int dPadre){
+	directoryEntry dirent;
+	directoryEntry dirents[50]; 
+   	Cluster cluster;
+	int dcluster = (2)*160764;
+	Cluster clusterTraido;
+
+	iNodoEntry inodoNuevo;
+	
+	//BitmapDatos datos;
+	//iNodoBitmap inodos;
+	TablaInodos tabla;
+
+    ifstream archivol("archivo.dat", ios::binary);
+    //archivol.read((char*)&datos, sizeof(BitmapDatos));
+    //archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+	
+	//dcluster = tabla.inodos[dPadre].d_directo[0];
+	cout<<tabla.inodos[dPadre].d_directo[0]<<endl;
+	archivol.seekg(dcluster, ios::beg);
+	for(int i = 0;i<50;i++){
+		archivol.read((char*)&clusterTraido, sizeof(Cluster));
+		dirent = clusterTraido.direntry;
+		if(dirent.getNombre() == name){
+			//dirPadre = dirent.getNinodo();
+			//currentPath = dirent.getNombre();
+		}else{
+			cout<<"esto encontro "<< dirent.getNombre()<<endl;
+		}
+	}
+}
+
 int main() {
     CrearArchivo();
     string comando;
@@ -475,6 +576,35 @@ int main() {
 	cout<<"Saliendo"<<endl;        
 	return(0);
     }
+    else if (comando[0]=='c' && comando[1]=='d'){
+        string temp;
+        for(int i=3; i<comando.length(); i++){
+            temp += comando[i];
+        }
+        //char *temp = nombre;
+        char nombre[temp.length()];
+        for(int i=0; i<temp.length(); i++){
+            nombre[i] = temp[i];
+        }
+        cout<<"cd "<<temp<<"\\"<<endl;
+	cambiaDirectorio(nombre,dirPadre);
+    }else if(comando[0]=='e' && comando[1]=='x' && comando[2]=='i' && comando[3]=='t')
+    {
+	cout<<"Saliendo"<<endl;        
+	return(0);
+    }else if (comando[0]=='m' && comando[1]=='k' && comando[2]=='d' && comando[3]=='i' && comando[4]=='r'){
+        string temp;
+        for(int i=5; i<comando.length(); i++){
+            temp += comando[i];
+        }
+        //char *temp = nombre;
+        char nombre[temp.length()];
+        for(int i=0; i<temp.length(); i++){
+            nombre[i] = temp[i];
+        }
+        cout<<"mkdir "<<temp<<"\\"<<endl;
+	creaDirectorio(nombre,dirPadre);
+	}
     else{
         cout<<"comando incorrecto"<<endl;
     }

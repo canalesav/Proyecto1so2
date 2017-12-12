@@ -48,7 +48,9 @@ struct iNodoEntry{
         return t_archivo;
     }
     void setDdirecto(long a[]){
-        //d_directo = a;
+        for(int i=0; i<12; i++){
+            d_directo[i] = a[i];
+        }
     }
     long* getDdirecto(){
         return d_directo;
@@ -75,12 +77,14 @@ struct iNodoEntry{
 }inodo;
 
 struct directoryEntry{
-    char *nombre;
+    char nombre[30];
     short t_nombre;
     short n_inodo;
     short t_registro;
     void setNombre(char* nom){
-        nombre = nom;
+        for(int i=0; i<30; i++){
+            nombre[i] = nom[i];
+        }
     }
     char* getNombre(){
         return nombre;
@@ -158,10 +162,20 @@ struct TablaInodos{
 //Datos
 struct Cluster{
     directoryEntry direntry;
-    char* datos;
+    char datos[3000];
 
-    void setDatos(char *dat){
-        datos = dat;
+    void setDatos(char *dat, int t_datos){
+        for(int i=0; i<t_datos; i++){
+            datos[i] = dat[i];
+        }
+    }
+    int getfreePos(){
+        for(int z=0; z<3000; z++){
+            if(datos[z]==NULL){
+                cout<<"pos_free: "<<z<<endl;
+                return z;
+            }
+        }
     }
 };
 void CrearArchivo(){
@@ -183,15 +197,15 @@ void CrearArchivo(){
     cout<<"Total reservado: "<<(total)<<" B"<<endl;
     int t_archivo = 262144*1024;
     cout<<"tamaño Datos: "<<(t_archivo-total)<<" KB"<<endl;
-    //char datos[3353496];
+    char datos[3353485];
     //cout<<"Datos: "<<sizeof(datos)<<endl;
 
     archivo.write((char*)&d_bitmap, sizeof(BitmapDatos));
     archivo.write((char*)&i_bitmap, sizeof(iNodoBitmap));
     archivo.write((char*)&t_inodos, sizeof(TablaInodos));
-    //for(int i=0; i<80; i++){
-    //    archivo.write((char*)&datos, sizeof(datos));
-    //}
+    for(int i=0; i<80; i++){
+        archivo.write((char*)&datos, sizeof(datos));
+    }
     archivo.close();
 }
 /*
@@ -201,16 +215,18 @@ struct Archivotxt{
     char tipo = 'rw';
 };
 */
-void cat_Escribir(char* nombre){
+void cat_Escribir(char* nombre, int t_nombre){
 
     string temp;
     getline(cin, temp, '\n');
     cout<<temp<<endl;
     char contenido[temp.length()];
+    int t_contenido = 0;
     for(int i=0; i<temp.length(); i++){
         contenido[i] = temp[i];
+        t_contenido++;
     }
-    char * temp1 = nombre;
+    //char * temp1 = nombre;
     char * temp2 = contenido;
     cout<<"ingresado: "<<temp2<<endl;
 
@@ -230,7 +246,7 @@ void cat_Escribir(char* nombre){
 
     tabla.inodos[i_libre].setMacceso('rw');
     tabla.inodos[i_libre].setInodo(i_libre);
-    tabla.inodos[i_libre].setLarchivo(sizeof(Cluster));
+    tabla.inodos[i_libre].setLarchivo(t_contenido);
     long ddirectos[12];
     /*
     if(d_libre == 0){
@@ -257,13 +273,13 @@ void cat_Escribir(char* nombre){
     cout<<"cur_pos_w: "<<escribir.tellp()<<endl;
     Cluster clu;
     clu.direntry.setNinodo(i_libre);
-    char* nombre1= temp1;
-    clu.direntry.setNombre(nombre1);
-    clu.direntry.setTnombre(sizeof(nombre1));
-    clu.direntry.setTregistro(sizeof(clu.datos));
-    cout<<"char *: "<<sizeof(nombre1)<<endl;
-    char * contenido1 = temp2;
-    clu.setDatos(contenido1);
+    //char* nombre1= temp1;
+    clu.direntry.setNombre(nombre);
+    clu.direntry.setTnombre(t_nombre);
+    clu.direntry.setTregistro(t_contenido);
+    cout<<"char *: "<<t_nombre<<endl;
+    //char * contenido1 = temp2;
+    clu.setDatos(contenido, t_contenido);
     cout<<"contenido: "<<clu.datos<<endl;
     cout<<"tamaño: "<<sizeof(clu)<<endl;
     escribir.write((char*)&clu, sizeof(Cluster));
@@ -289,23 +305,174 @@ void cat_Escribir(char* nombre){
 
 }
 void cat_Leer(char* nombre){
-/*
-    Cluster clur;
-    cout<<"tamaño: "<<sizeof(clur)<<endl;
-    ifstream archivo2("archivo.dat", ios::binary);
 
-    archivo2.seekg(primera_dir, ios::cur);
-    cout<<"possicion e: "<<archivo2.tellg()<<endl;
-    archivo2.read((char*)&clur, sizeof(Cluster));
-    cout<<"inodo: "<<clur.direntry.getNinodo()<<endl;
-    cout<<"nombre: "<<clur.direntry.getNombre()<<endl;
-    cout<<"t_nombre: "<<clur.direntry.getTnombre()<<endl;
-    cout<<"t_registro: "<<clur.direntry.getTregistro()<<endl;
-    cout<<"datos: "<<clur.datos<<endl;
-    cout<<"cur_pos_d: "<<archivo2.tellg()<<endl;
+    BitmapDatos datos;
+    iNodoBitmap inodos;
+    TablaInodos tabla;
+    Cluster clu;
 
-    archivo2.close();
-*/
+    ifstream archivol("archivo.dat", ios::binary);
+    archivol.read((char*)&datos, sizeof(BitmapDatos));
+    archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+    cout<<"tamaño dir_entry: "<<sizeof(directoryEntry)<<" B"<<endl;
+
+    cout<<"inodos: "<<sizeof(inodos.inodo)<<endl;
+    bool f = false;
+    for(int i=0; i<sizeof(inodos.inodo); i++){
+        bool s = false;
+        if(inodos.inodo[i] == true){
+            for(int j=0; j<12; j++){
+                cout<<"directo dir: "<<tabla.inodos[i].d_directo[j]<<endl;
+                int temp = tabla.inodos[i].d_directo[j];
+                archivol.seekg(0, ios::beg);
+                archivol.seekg(temp, ios::cur);
+                cout<<"pos: "<<archivol.tellg()<<endl;
+                cout<<"llego"<<endl;
+                archivol.read((char*)&clu, sizeof(Cluster));
+                //char * nombre = clu.datos;
+                string tmp = clu.direntry.getNombre();
+                string nom = nombre;
+
+                cout<<"v: "<<nom<<" t: "<<nom.length()<<endl;
+                cout<<"v: "<<tmp<<" t: "<<tmp.length()<<endl;
+                string a, b;
+                for(int x=0; x<nom.length(); x++){
+                    if(nom[x]!=NULL){
+                        a += nom[x];
+                    }
+                }
+                for(int y=0; y<tmp.length(); y++){
+                    if(tmp[y]!=NULL){
+                        b += tmp[y];
+                    }
+                }
+
+                if(a.length() == b.length()){
+                    bool strike = true;
+                    for(int x=0; x<a.length(); x++){
+                        if(a[i] != b[i]){
+                            cout<<"Fallo"<<endl;
+                            strike = false;
+                        }
+                    }
+                    if(strike == true){
+                        cout<<"contenido: "<<clu.datos<<endl;
+                        break;
+                    }
+                //cout<<"Contenido:" <<clu.datos<<endl;
+                }
+
+            }
+            if(s==false){
+                continue;
+            }else{
+                f = true;
+                break;
+            }
+        }else if(f){
+            break;
+        }
+        else{
+            cout<<"No se encontro el archivo";
+            break;
+        }
+    }
+    archivol.close();
+}
+void cat_insertar(char* nombre){
+
+    BitmapDatos datos;
+    iNodoBitmap inodos;
+    TablaInodos tabla;
+    Cluster clu;
+
+    ifstream archivol("archivo.dat", ios::binary);
+    archivol.read((char*)&datos, sizeof(BitmapDatos));
+    archivol.read((char*)&inodos, sizeof(iNodoBitmap));
+    archivol.read((char*)&tabla, sizeof(TablaInodos));
+    cout<<"tamaño dir_entry: "<<sizeof(directoryEntry)<<" B"<<endl;
+
+    cout<<"inodos: "<<sizeof(inodos.inodo)<<endl;
+    for(int i=0; i<sizeof(inodos.inodo); i++){
+        bool s = false;
+        if(inodos.inodo[i] == true){
+            for(int j=0; j<12; j++){
+                cout<<"directo dir: "<<tabla.inodos[i].d_directo[j]<<endl;
+                int temp = tabla.inodos[i].d_directo[j];
+                archivol.seekg(0, ios::beg);
+                archivol.seekg(temp, ios::cur);
+                cout<<"pos: "<<archivol.tellg()<<endl;
+                cout<<"llego"<<endl;
+                archivol.read((char*)&clu, sizeof(Cluster));
+                //char * nombre = clu.datos;
+                string tmp = clu.direntry.getNombre();
+                string nom = nombre;
+
+                cout<<"v: "<<nom<<" t: "<<nom.length()<<endl;
+                cout<<"v: "<<tmp<<" t: "<<tmp.length()<<endl;
+                string a, b;
+                for(int x=0; x<nom.length(); x++){
+                    if(nom[x]!=NULL){
+                        a += nom[x];
+                    }
+                }
+                for(int y=0; y<tmp.length(); y++){
+                    if(tmp[y]!=NULL){
+                        b += tmp[y];
+                    }
+                }
+
+                if(a.length() == b.length()){
+                    bool strike = true;
+                    for(int x=0; x<a.length(); x++){
+                        if(a[i] != b[i]){
+                            cout<<"Fallo"<<endl;
+                            strike = false;
+                        }
+                    }
+                    if(strike == true){
+                        cout<<"contenido: "<<clu.datos<<endl;
+                        archivol.close();
+                        ofstream escribir("archivo.dat", ios::binary);
+                        cout<<"cur_inicial: "<<escribir.tellp()<<endl;
+                        escribir.seekp(0, ios::beg);
+                        escribir.seekp(temp, ios::cur);
+                        string temp3;
+                        getline(cin, temp3, '\n');
+                        cout<<temp<<endl;
+                        char contenido[temp3.length()];
+                        int t_contenido = 0;
+                        for(int z=0; z<temp3.length(); z++){
+                            contenido[z] = temp3[z];
+                            t_contenido++;
+                        }
+                        cout<<"pos escribir:"<<escribir.tellp()<<endl;
+                        int pos = clu.getfreePos();
+                        cout<<"escrito m: "<<contenido<<endl;
+                        for(int z=0; z<t_contenido; z++){
+                            clu.datos[pos+z+1] = contenido[z];
+                        }
+                        cout<<"contenido m: "<<clu.datos<<endl;
+                        escribir.write((char*)&clu, sizeof(Cluster));
+
+                        escribir.close();
+                        break;
+                    }
+                //cout<<"Contenido:" <<clu.datos<<endl;
+                }
+            }
+            if(s==false){
+            continue;
+            }else{
+                break;
+            }
+        }else{
+            cout<<"No se encontro el archivo";
+            break;
+        }
+    }
+    archivol.close();
 }
 void borrarArchivo(char* nombre){
     string temp;
@@ -368,68 +535,94 @@ void borrarArchivo(char* nombre){
     archivo.write((char*)&t_inodos, sizeof(TablaInodos));
     archivo.close();
 }
+struct mkdir{
+
+};
 
 int main() {
+
     CrearArchivo();
-    string comando;
-    getline(cin, comando, '\n');
-    cout<<"Ingresado:"<<comando<<endl;
-    if(comando[0]=='c' && comando[1]=='a' && comando[2]=='t' && comando[4]=='>'){
-        string temp;
-        for(int i=6; i<comando.length(); i++){
-            temp += comando[i];
+    while(true){
+        string comando;
+        getline(cin, comando, '\n');
+        cout<<"Ingresado:"<<comando<<endl;
+        if(comando[0]=='c' && comando[1]=='a' && comando[2]=='t' && comando[4]=='>' && comando[5]=='>'){
+            string temp;
+            for(int i=7; i<comando.length(); i++){
+                temp += comando[i];
+            }
+            //char *temp = nombre;
+            cout<<"cat m"<<endl;
+            char nombre[temp.length()];
+            for(int i=0; i<temp.length(); i++){
+                nombre[i] = temp[i];
+            }
+            cat_insertar(nombre);
+
+        }else if(comando[0]=='c' && comando[1]=='a' && comando[2]=='t' && comando[4]=='>'){
+            string temp;
+            for(int i=6; i<comando.length(); i++){
+                temp += comando[i];
+            }
+            //char *temp = nombre;
+            cout<<"cat w"<<endl;
+            char nombre[temp.length()];
+            int t_nombre = 0;
+            for(int i=0; i<temp.length(); i++){
+                nombre[i] = temp[i];
+                t_nombre++;
+            }
+
+            cat_Escribir(nombre, t_nombre);
+
+        }else if(comando[0]=='c' && comando[1]=='a' && comando[2]=='t'){
+            string temp;
+            for(int i=4; i<comando.length(); i++){
+                temp += comando[i];
+            }
+            //char *temp = nombre;
+            cout<<"cat r"<<endl;
+            char nombre[temp.length()];
+            for(int i=0; i<temp.length(); i++){
+                nombre[i] = temp[i];
+            }
+            cat_Leer(nombre);
+        }else if (comando[0]=='r' && comando[1]=='m'){
+            string temp;
+            for(int i=3; i<comando.length(); i++){
+                temp += comando[i];
+            }
+            //char *temp = nombre;
+            cout<<"rm"<<endl;
+            char nombre[temp.length()];
+            for(int i=0; i<temp.length(); i++){
+                nombre[i] = temp[i];
+            }
+            borrarArchivo(nombre);
+        }else if (comando[0]=='c' && comando[1]=='d'){
+            string temp;
+            for(int i=3; i<comando.length(); i++){
+                temp += comando[i];
+            }
+            //char *temp = nombre;
+            char nombre[temp.length()];
+            for(int i=0; i<temp.length(); i++){
+                nombre[i] = temp[i];
+            }
+            cout<<"cd "<<temp<<"\\"<<endl;
+        }else if(comando[0]=='e' && comando[1]=='x' && comando[2]=='i' && comando[3]=='t')
+        {
+        cout<<"Saliendo"<<endl;
+            break;
+        //return(0);
         }
-        //char *temp = nombre;
-        cout<<"cat w"<<endl;
-        char nombre[temp.length()];
-        for(int i=0; i<temp.length(); i++){
-            nombre[i] = temp[i];
+        else{
+            cout<<"comando incorrecto"<<endl;
         }
-        cat_Escribir(nombre);
-    }else if(comando[0]=='c' && comando[1]=='a' && comando[2]=='t'){
-        string temp;
-        for(int i=4; i<comando.length(); i++){
-            temp += comando[i];
-        }
-        //char *temp = nombre;
-        cout<<"cat r"<<endl;
-        char nombre[temp.length()];
-        for(int i=0; i<temp.length(); i++){
-            nombre[i] = temp[i];
-        }
-        cat_Leer(nombre);
-    }else if (comando[0]=='r' && comando[1]=='m'){
-        string temp;
-        for(int i=3; i<comando.length(); i++){
-            temp += comando[i];
-        }
-        //char *temp = nombre;
-        cout<<"rm"<<endl;
-        char nombre[temp.length()];
-        for(int i=0; i<temp.length(); i++){
-            nombre[i] = temp[i];
-        }
-        borrarArchivo(nombre);
-    }else if (comando[0]=='c' && comando[1]=='d'){
-        string temp;
-        for(int i=3; i<comando.length(); i++){
-            temp += comando[i];
-        }
-        //char *temp = nombre;
-        char nombre[temp.length()];
-        for(int i=0; i<temp.length(); i++){
-            nombre[i] = temp[i];
-        }
-        cout<<"cd "<<temp<<"\\"<<endl;
-    }else if(comando[0]=='e' && comando[1]=='x' && comando[2]=='i' && comando[3]=='t')
-    {
-	cout<<"Saliendo"<<endl;        
-	return(0);
-    }
-    else{
-        cout<<"comando incorrecto"<<endl;
+
     }
     //continuar con lo de los accesos al bitmap y demas para no tener problemas al buscar
    return 0;
 }
+
 
